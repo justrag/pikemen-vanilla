@@ -9,33 +9,8 @@ const { produce } = require("immer");
  */
 const range = (size) => [...Array(size).keys()];
 
-/**
- * Generate a new array by replacing `idx`-th element of `array` with `replacement`
- * @template {*} T
- *
- * @param {T[]} array
- * @param {integer} idx
- * @param {T} replacement
- */
-const replaceAt = (array, idx, replacement) =>
-  array.map((elem, index) => (index === idx ? replacement : elem));
-
-/**
- * @template {*} T
- *
- * @param {T[]} array2d
- * @param {integer} x
- * @param {integer} y
- * @param {T} replacement
- */
-const replaceAtXY = (array2d, x, y, replacement) =>
-  replaceAt(array2d, x, replaceAt(array2d[x], y, replacement));
-
-/** @typedef {Object} Coords
- * @prop {0|1|2|3|4|5|6|7} x field row index
- * @prop {0|1|2|3|4|5|6|7} y field column index
- */
-
+/** @typedef {0|1|2|3|4|5|6|7} Coord */
+/** @typedef {[Coord,Coord]} Coords */
 /** @typedef {'red'|'blue'} Color */
 /** @typedef {'N'|'NE'|'E'|'SE'|'S'|'SW'|'W'|'NW'|'UP'} Orientation */
 
@@ -72,8 +47,8 @@ const replaceAtXY = (array2d, x, y, replacement) =>
 const makeMove = (state, move) => {
   validateMove(state, move);
   const { start, end, orientation } = move;
-  const { x: startX, y: startY } = start;
-  const { x: endX, y: endY } = end;
+  const [startX, startY] = start;
+  const [endX, endY] = end;
   const newState = produce(state, (draft) => {
     const { board, score, currentPlayer, startingPlayer } = draft;
 
@@ -114,8 +89,8 @@ const makeMove = (state, move) => {
  */
 const validateMove = (state, move) => {
   const { start, end, orientation } = move;
-  const { x: startX, y: startY } = start;
-  const { x: endX, y: endY } = end;
+  const [startX, startY] = start;
+  const [endX, endY] = end;
   const { board, currentPlayer } = state;
   const startField = board[startX][startY];
   const endField = board[endX][endY];
@@ -180,8 +155,8 @@ const orientationToCoords = {
  * @returns {boolean}
  */
 const matchesDirection = (start, end, orientation) => {
-  const { x: startX, y: startY } = start;
-  const { x: endX, y: endY } = end;
+  const [startX, startY] = start;
+  const [endX, endY] = end;
 
   const diffX = endX - startX;
   const diffY = endY - startY;
@@ -196,11 +171,11 @@ const matchesDirection = (start, end, orientation) => {
 };
 
 const isObstructed = (board, start, end, orientation) => {
-  const { x: startX, y: startY } = start;
-  const { x: endX, y: endY } = end;
+  const [startX, startY] = start;
+  const [endX, endY] = end;
   const [dirX, dirY] = orientationToCoords[orientation];
 
-  /** @type {[integer,integer][]} */
+  /** @type {Coords[]} */
   let path = [];
   let currentX = startX;
   let currentY = startY;
@@ -216,7 +191,7 @@ const isObstructed = (board, start, end, orientation) => {
 
 const testBoard = range(8).map(() => range(8).map(() => ({})));
 testBoard[3][2] = { size: 3, color: "red", orientation: "E" };
-testBoard[6][2] = { size: 2, color: "red", orientation: "UP" };
+//testBoard[6][2] = { size: 2, color: "red", orientation: "UP" };
 testBoard[7][2] = { size: 3, color: "blue", orientation: "SW" };
 const testState = {
   board: testBoard,
@@ -230,8 +205,8 @@ console.log(JSON.stringify(testState));
 console.log(
   JSON.stringify(
     makeMove(testState, {
-      start: { x: 3, y: 2 },
-      end: { x: 7, y: 2 },
+      start: [3, 2],
+      end: [7, 2],
       orientation: "N",
     })
   )
